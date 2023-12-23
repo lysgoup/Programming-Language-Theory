@@ -11,6 +11,7 @@ public:
     AST *parse(string exampleCode);
     bool isNumeric(string str);
     string desugar(string exampleCode);
+    bool isRecursion(string exampleCode);
 };
 
 vector<string> Parser::splitExpressionAsSubExpressions(string exampleCode)
@@ -270,4 +271,18 @@ string Parser::desugar(string exampleCode){
     desugared += SubExpressions.at(2);
     desugared += "}}";
     return desugared;
+}
+
+bool Parser::isRecursion(string exampleCode)
+{
+    vector<string> sub = splitExpressionAsSubExpressions(exampleCode);
+    if(sub.at(0) == "with"){
+        vector<string> sub1 = splitExpressionAsSubExpressions(sub.at(1));
+        vector<string> sub2 = splitExpressionAsSubExpressions(sub1.at(1));
+        if(sub2.at(2).find(sub1.at(0)) != string::npos){
+            return true;
+        }
+    }
+
+    return false;
 }
