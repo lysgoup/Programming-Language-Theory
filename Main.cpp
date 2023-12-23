@@ -5,16 +5,45 @@
 using namespace std;
 
 int main(int argc, char *argv[]){
-    string pOption, ConcreteCode;
+    string pOption, ConcreteCode, dOption;
     AST* ast;
     VAL* val;
     DS* ds = new DS();
+    ST* st = new ST();
     Parser parser;
     Interpreter interp;
 
-    if(argc >= 3){
+    if(argc >= 4){
         if(strcmp(argv[1], "-p") == 0){
             pOption = argv[1];
+            ConcreteCode = argv[3];
+        }
+        else if(strcmp(argv[1], "-d") == 0){
+            dOption = argv[1];
+            ConcreteCode = argv[3];
+        }
+        else    
+            return 0;
+        
+        if(strcmp(argv[2], "-p") == 0){
+            pOption = argv[2];
+            ConcreteCode = argv[3];
+        }
+        else if(strcmp(argv[2], "-d") == 0){
+            dOption = argv[2];
+            ConcreteCode = argv[3];
+        }
+        else    
+            return 0;
+    }
+    else if(argc >= 3){
+        if(strcmp(argv[1], "-p") == 0){
+            pOption = argv[1];
+            ConcreteCode = argv[2];
+        }
+        else if(strcmp(argv[1], "-d") == 0){
+            dOption = argv[1];
+            pOption = "Interprete";
             ConcreteCode = argv[2];
         }
         else    
@@ -26,14 +55,26 @@ int main(int argc, char *argv[]){
     }
 
     if(pOption == "-p"){
+        // vector<string> subExpressions = parser.splitExpressionAsSubExpressions(ConcreteCode);
+        // for(int i=0; i<subExpressions.size(); i++){
+        //     cout << subExpressions.at(i) << "\n";
+        // }
+        if(dOption == "-d"){
+            ConcreteCode = parser.desugar(ConcreteCode);
+        }
         ast = parser.parse(ConcreteCode);
         cout << ast->getASTCode();
         
         return 0;   
     }
     else if(pOption == "Interprete"){
+        if(dOption == "-d"){
+            ConcreteCode = parser.desugar(ConcreteCode);
+            // cout << ConcreteCode << "\n";
+            // return 0;
+        }
         ast = parser.parse(ConcreteCode);
-        val = interp.interprete(ast, ds);
+        val = interp.interprete(ast, ds, st);
         cout << val->getVal();
         return 0;
     }

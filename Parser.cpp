@@ -10,6 +10,7 @@ public:
     vector<string> getSubExpressions(string exampleCode);
     AST *parse(string exampleCode);
     bool isNumeric(string str);
+    string desugar(string exampleCode);
 };
 
 vector<string> Parser::splitExpressionAsSubExpressions(string exampleCode)
@@ -42,7 +43,10 @@ vector<string> Parser::getSubExpressions(string exampleCode)
         }
         else
         {
-            if (exampleCode.at(i) == '{' && openingParenthesisCount == 0)
+            if(exampleCode.at(i) == '\n'){
+                continue;
+            }
+            else if (exampleCode.at(i) == '{' && openingParenthesisCount == 0)
             {
                 openingParenthesisCount++;
                 // Ready to start a new buffer
@@ -84,6 +88,9 @@ vector<string> Parser::getSubExpressions(string exampleCode)
 AST *Parser::parse(string exampleCode)
 {
     vector<string> subExpressions = splitExpressionAsSubExpressions(exampleCode);
+    // for(int i=0; i<subExpressions.size(); i++){
+    //     cout << subExpressions.at(i) << "\n";
+    // }
     if (subExpressions.size() == 1 && isNumeric(subExpressions.front()))
     {
         // AST* num = new Num();
@@ -102,15 +109,6 @@ AST *Parser::parse(string exampleCode)
         id->createId(subExpressions.front());
         return id;
     }
-    //parse function application
-    else if (subExpressions.size() == 2 && subExpressions.front()[0]=='{'){
-        // AST* num = new Num();
-        AST *app = new AST();
-        app->type = APP;
-        app->createFunexpr(parse(subExpressions.at(0)));
-        app->createArgexpr(parse(subExpressions.at(1)));
-        return app;
-    }
 
     if (subExpressions.front() == "+")
     {
@@ -128,17 +126,46 @@ AST *Parser::parse(string exampleCode)
         sub->createAdd(parse(subExpressions.at(1)), parse(subExpressions.at(2)));
         return sub;
     }
+    else if (subExpressions.front() == "*")
+    {
+        // AST* num = new Num();
+        AST *mul = new AST();
+        mul->type = MUL;
+        mul->createAdd(parse(subExpressions.at(1)), parse(subExpressions.at(2)));
+        return mul;
+    }
+    else if (subExpressions.front() == "=")
+    {
+        // AST* num = new Num();
+        AST *eq = new AST();
+        eq->type = EQUAL;
+        eq->createAdd(parse(subExpressions.at(1)), parse(subExpressions.at(2)));
+        return eq;
+    }
     else if (subExpressions.front() == "fun")
     {
+        // cout << "here: fun\n";
         // AST* num = new Num();
         AST *fun = new AST();
         fun->type = FUN;
-        fun->createParam(subExpressions.at(1));
+        string param = subExpressions.at(1);
+        param = param.substr(1, param.size()-2);
+        fun->createParam(param);
         fun->createFunction(parse(subExpressions.at(2)));
         return fun;
     }
+    else if (subExpressions.front() == "refun")
+    {
+        // AST* num = new Num();
+        AST *refun = new AST();
+        refun->type = REFUN;
+        refun->createParam(subExpressions.at(1));
+        refun->createFunction(parse(subExpressions.at(2)));
+        return refun;
+    }
     else if (subExpressions.front() == "with")
     {
+        // cout << "here: with\n";
         if(subExpressions.at(2) == ""){
             fprintf(stderr, "There is no body expression");
 		    exit(EXIT_FAILURE);
@@ -155,6 +182,68 @@ AST *Parser::parse(string exampleCode)
         app->createArgexpr(parse(temp.at(1)));
         return app;
     }
+    else if(subExpressions.front() == "if")
+    {
+        AST *ifexp = new AST();
+        ifexp->type = IFEXP;
+        ifexp->createTestexpr(parse(subExpressions.at(1)));
+        ifexp->createThenexpr(parse(subExpressions.at(2)));
+        ifexp->createElseexpr(parse(subExpressions.at(3)));
+        return ifexp;
+    }
+    else if(subExpressions.front() == "or")
+    {
+        AST *orop = new AST();
+        orop->type = OROP;
+        orop->createAdd(parse(subExpressions.at(1)), parse(subExpressions.at(2)));
+        return orop;
+    }
+    else if(subExpressions.front() == "newbox")
+    {
+        AST *newbox = new AST();
+        newbox->type = NEWBOX;
+        newbox->createValue(parse(subExpressions.at(1)));
+        return newbox;
+    }
+    else if(subExpressions.front() == "setbox")
+    {
+        AST *setbox = new AST();
+        setbox->type = NEWBOX;
+        setbox->createBoxname(parse(subExpressions.at(1)));
+        setbox->createValue(parse(subExpressions.at(2)));
+        return setbox;
+    }
+    else if(subExpressions.front() == "openbox")
+    {
+        AST *openbox = new AST();
+        openbox->type = OPENBOX;
+        openbox->createValue(parse(subExpressions.at(1)));
+        return openbox;
+    }
+    else if(subExpressions.front() == "seqn")
+    {
+        AST *seqn = new AST();
+        seqn->type = SEQN;
+        seqn->createAdd(parse(subExpressions.at(1)),parse(subExpressions.at(2)));
+        return seqn;
+    }
+    else if(subExpressions.front() == "setvar")
+    {
+        AST *setvar = new AST();
+        setvar->type = SETVAR;
+        setvar->createId(subExpressions.at(1));
+        setvar->createValue(parse(subExpressions.at(2)));
+        return setvar;
+    }
+    //parse function application
+    else if (subExpressions.size() == 2){
+        // AST* num = new Num();
+        AST *app = new AST();
+        app->type = APP;
+        app->createFunexpr(parse(subExpressions.at(0)));
+        app->createArgexpr(parse(subExpressions.at(1)));
+        return app;
+    }
 }
 
 bool Parser::isNumeric(string str)
@@ -162,4 +251,23 @@ bool Parser::isNumeric(string str)
     regex pattern("-?\\d+(\\.\\d+)?");
     smatch match;
     return regex_match(str, match, pattern);
+}
+
+string Parser::desugar(string exampleCode){
+    string desugared = "";
+    vector<string> SubExpressions = splitExpressionAsSubExpressions(exampleCode);
+    vector<string> SubsubExpressions;
+    if(SubExpressions.at(0) == "with"){
+        SubsubExpressions = splitExpressionAsSubExpressions(SubExpressions.at(1));
+    }
+    desugared += "{with {mk-rec {fun {body-proc} {with {fX {fun {fY} {with {f {fun {x} {{fY fY} x}}} {body-proc f}}}}{fX fX}}}} {with {";
+    desugared += SubsubExpressions.at(0);
+    desugared += " {mk-rec {fun {";
+    desugared += SubsubExpressions.at(0);
+    desugared += "} ";
+    desugared += SubsubExpressions.at(1);
+    desugared += "}}} ";
+    desugared += SubExpressions.at(2);
+    desugared += "}}";
+    return desugared;
 }
