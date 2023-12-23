@@ -1,6 +1,6 @@
 #include <iostream>
 #include <regex>
-#include "FAE.h"
+#include "RBMRLFAE.h"
 
 class Parser
 {
@@ -208,7 +208,7 @@ AST *Parser::parse(string exampleCode)
     else if(subExpressions.front() == "setbox")
     {
         AST *setbox = new AST();
-        setbox->type = NEWBOX;
+        setbox->type = SETBOX;
         setbox->createBoxname(parse(subExpressions.at(1)));
         setbox->createValue(parse(subExpressions.at(2)));
         return setbox;

@@ -1,5 +1,5 @@
 #include <iostream>
-#include "FAE.h"
+#include "RBMRLFAE.h"
 #include "Parser.cpp"
 #include "Interpreter.cpp"
 using namespace std;
@@ -7,7 +7,7 @@ using namespace std;
 int main(int argc, char *argv[]){
     string pOption, ConcreteCode, dOption;
     AST* ast;
-    VAL* val;
+    VS* vs;
     DS* ds = new DS();
     ST* st = new ST();
     Parser parser;
@@ -71,11 +71,14 @@ int main(int argc, char *argv[]){
         if(dOption == "-d"){
             ConcreteCode = parser.desugar(ConcreteCode);
             // cout << ConcreteCode << "\n";
-            // return 0;
+            ast = parser.parse(ConcreteCode);
+            vs = interp.interprete(ast, ds, st);
+            cout << vs->getVs();
+            return 0;
         }
         ast = parser.parse(ConcreteCode);
-        val = interp.interprete(ast, ds, st);
-        cout << val->getVal();
+        vs = interp.interprete(ast, ds, st);
+        cout << vs->getVs();
         return 0;
     }
     else
