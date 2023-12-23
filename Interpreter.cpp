@@ -272,27 +272,49 @@ VS * Interpreter::interprete(AST *absCode, DS *defSub, ST *store){
   else if(absCode->getType() == APP){
     VS *temp1 = interprete(absCode->fun_expr, defSub, store);
     if(temp1->value->type == CLOSUREV){
-      VAL *arg_val = new VAL();
-      arg_val->type = EXPRV;
-      arg_val->expr = absCode->arg_expr;
-      arg_val->dsClosure = defSub;
-      string new_address = mall(temp1->store);
-      DS *aSub = new DS();
-      aSub->is_empty = 0;
-      if(temp1->value->param.front() == '{'){
-        aSub->name = temp1->value->param.substr(1, temp1->value->param.length() - 2);
+      if(absCode->arg_expr->type == ID){
+        VS *temp2 = interprete(absCode->arg_expr,defSub,temp1->store);
+        string new_address = mall(temp2->store);
+        DS *aSub = new DS();
+        aSub->is_empty = 0;
+        aSub->address = new_address;
+        aSub->subDs = temp1->value->dsClosure;
+        if(temp1->value->param.front() == '{'){
+          aSub->name = temp1->value->param.substr(1, temp1->value->param.length() - 2);
+        }
+        else{
+          aSub->name = temp1->value->param;
+        }
+        ST *aSto = new ST();
+        aSto->is_empty = 0;
+        aSto->address = new_address;
+        aSto->value = temp2->value;
+        aSto->subSt = temp2->store;
+        valueStore = interprete(temp1->value->fbody,aSub,aSto);
       }
       else{
-        aSub->name = temp1->value->param;
+        VAL *arg_val = new VAL();
+        arg_val->type = EXPRV;
+        arg_val->expr = absCode->arg_expr;
+        arg_val->dsClosure = defSub;
+        string new_address = mall(temp1->store);
+        DS *aSub = new DS();
+        aSub->is_empty = 0;
+        if(temp1->value->param.front() == '{'){
+          aSub->name = temp1->value->param.substr(1, temp1->value->param.length() - 2);
+        }
+        else{
+          aSub->name = temp1->value->param;
+        }
+        aSub->address = new_address;
+        aSub->subDs = temp1->value->dsClosure;
+        ST *aSto = new ST();
+        aSto->is_empty = 0;
+        aSto->address = new_address;
+        aSto->value = arg_val;
+        aSto->subSt = temp1->store;
+        valueStore = interprete(temp1->value->fbody,aSub,aSto);
       }
-      aSub->address = new_address;
-      aSub->subDs = temp1->value->dsClosure;
-      ST *aSto = new ST();
-      aSto->is_empty = 0;
-      aSto->address = new_address;
-      aSto->value = arg_val;
-      aSto->subSt = temp1->store;
-      valueStore = interprete(temp1->value->fbody,aSub,aSto);
     }
     else if(temp1->value->type == REFCLOSV){
       string address = lookup(absCode->arg_expr->id,defSub);

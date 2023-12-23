@@ -278,8 +278,14 @@ bool Parser::isRecursion(string exampleCode)
     vector<string> sub = splitExpressionAsSubExpressions(exampleCode);
     if(sub.at(0) == "with"){
         vector<string> sub1 = splitExpressionAsSubExpressions(sub.at(1));
+        // for(int i=0; i<sub1.size(); i++){
+        //     cout << sub1.at(i) << "\n";
+        // }
         vector<string> sub2 = splitExpressionAsSubExpressions(sub1.at(1));
-        if(sub2.at(2).find(sub1.at(0)) != string::npos){
+        // for(int i=0; i<sub2.size(); i++){
+        //     cout << sub2.at(i) << "\n";
+        // }
+        if((sub2.size() > 2) && (sub2.at(2).find(sub1.at(0)) != string::npos)){
             return true;
         }
     }

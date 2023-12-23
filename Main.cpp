@@ -70,14 +70,10 @@ int main(int argc, char *argv[]){
     else if(pOption == "Interprete"){
         if(parser.isRecursion(ConcreteCode)){
             cout << "Recursion!!\n";
-        }
-        else cout << "not Recursion!!\n";
-        if(dOption == "-d"){
             ConcreteCode = parser.desugar(ConcreteCode);
-            ast = parser.parse(ConcreteCode);
-            vs = interp.interprete(ast, ds, st);
-            cout << vs->getVs();
-            return 0;
+        }
+        else{
+            cout << "not Recursion!!\n";
         }
         ast = parser.parse(ConcreteCode);
         vs = interp.interprete(ast, ds, st);
