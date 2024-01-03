@@ -55,10 +55,6 @@ int main(int argc, char *argv[]){
     }
 
     if(pOption == "-p"){
-        // vector<string> subExpressions = parser.splitExpressionAsSubExpressions(ConcreteCode);
-        // for(int i=0; i<subExpressions.size(); i++){
-        //     cout << subExpressions.at(i) << "\n";
-        // }
         if(dOption == "-d"){
             ConcreteCode = parser.desugar(ConcreteCode);
         }
